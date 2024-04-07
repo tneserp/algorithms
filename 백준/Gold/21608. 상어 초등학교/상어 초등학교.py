@@ -1,50 +1,97 @@
 import sys
+
 input = sys.stdin.readline
 
-dr = [-1, 1, 0, 0]
-dc = [0, 0, -1, 1]
+N = int(input().strip())
+seat = [[0] * N for _ in range(N)]
+student = {}
+
+for _ in range(N ** 2):
+    temp = list(map(int, input().split()))
+    student[temp[0]] = temp[1:]
 
 
-n = int(input())
-arr = [[0]*n for _ in range(n)]
-## 한 번에 정보를 받음
-students = [list(map(int, input().split())) for _ in range(n**2)]
+def getLove(num):
+    loveFirst = [[0] * N for _ in range(N)]
 
-## 학생 수 만큼 for문을 돌며 자리에 앉혀 줌.
-for order in range(n**2):
-    student = students[order]
-    ## 여기다가 가능한 자리를 다 담아서 정렬 후 앉힘
-    tmp = []
-    for i in range(n):
-        for j in range(n):
-            if arr[i][j] == 0:
-                like = 0
-                blank = 0
-                for k in range(4):
-                    nr, nc = i + dr[k], j + dc[k]
-                    if 0 <= nr < n and 0 <= nc < n:
-                        if arr[nr][nc] in student[1:]:
-                            like += 1
-                        if arr[nr][nc] == 0:
-                            blank += 1
-                tmp.append([like, blank, i, j])
-    ### !!!! like, blank는 클 수록, 행과 열의 수는 작을수록 답이니 lambda 뒤의 조건을 잘 줘야함!!!
-    tmp.sort(key= lambda x:(-x[0], -x[1], x[2], x[3]))
-    ### 정렬 후 젤 앞에 있는 리스트의 행과 열의 번호에 학생 앉히기 
-    arr[tmp[0][2]][tmp[0][3]] = student[0]
+    # 1단계
+    # 1. 비어있는 칸 중에서 좋아하는 학생이 인접한 칸에 가장 많은 칸으로 자리를 정한다.
+    hubo1 = []
+    temp = float("-inf")
+    for i in range(N):
+        for j in range(N):
+            if seat[i][j] == 0 and i - 1 >= 0 and seat[i - 1][j] in student[num]:
+                loveFirst[i][j] += 1
+            if seat[i][j] == 0 and i + 1 < N and seat[i + 1][j] in student[num]:
+                loveFirst[i][j] += 1
+            if seat[i][j] == 0 and j - 1 >= 0 and seat[i][j - 1] in student[num]:
+                loveFirst[i][j] += 1
+            if seat[i][j] == 0 and j + 1 < N and seat[i][j + 1] in student[num]:
+                loveFirst[i][j] += 1
 
-result = 0
-## 점수를 매길 때는 학생 순서대로 점수 주기 위해 정렬함 
-students.sort()
+    for i in loveFirst:
+        temp = max(temp, max(i))
 
-for i in range(n):
-    for j in range(n):
-        ans = 0
-        for k in range(4):
-            nr, nc = i + dr[k], j + dc[k]
-            if 0 <= nr < n and 0 <= nc < n:
-                if arr[nr][nc] in students[arr[i][j]-1]:
-                    ans += 1
-        if ans != 0:
-            result += 10 ** (ans-1)
-print(result)
+    for i in range(N):
+        for j in range(N):
+            if seat[i][j] == 0 and loveFirst[i][j] == temp:
+                hubo1.append((i, j))
+    if len(hubo1) == 1:
+        return hubo1[0]
+
+    # 2단계
+    # 2. 1을 만족하는 칸이 여러 개이면, 인접한 칸 중에서 비어있는 칸이 가장 많은 칸으로 자리를 정한다.
+    loveSecond = [[0] * N for _ in range(N)]
+    hubo2 = []
+    temp = float("-inf")
+
+    for x, y in hubo1:
+        if seat[x][y] == 0 and x - 1 >= 0 and seat[x - 1][y] == 0:
+            loveSecond[x][y] += 1
+        if seat[x][y] == 0 and x + 1 < N and seat[x + 1][y] == 0:
+            loveSecond[x][y] += 1
+        if seat[x][y] == 0 and y - 1 >= 0 and seat[x][y - 1] == 0:
+            loveSecond[x][y] += 1
+        if seat[x][y] == 0 and y + 1 < N and seat[x][y + 1] == 0:
+            loveSecond[x][y] += 1
+
+    for i in loveSecond:
+        temp = max(temp, max(i))
+
+    for i in range(N):
+        for j in range(N):
+            if seat[i][j] == 0 and loveSecond[i][j] == temp and (i, j) in hubo1:
+                hubo2.append([i, j])
+    if len(hubo2) == 1:
+        return hubo2[0]
+    # 3단계
+    # 3. 2를 만족하는 칸도 여러 개인 경우에는 행의 번호가 가장 작은 칸으로,
+    # 그러한 칸도 여러 개이면 열의 번호가 가장 작은 칸으로 자리를 정한다.
+    hubo2.sort(key=lambda k: (k[0], k[1]))
+    return hubo2[0]
+
+
+def calculateLove(x, y, num):
+    love = 0
+    if x - 1 >= 0 and seat[x - 1][y] in student[num]:
+        love += 1
+    if x + 1 < N and seat[x + 1][y] in student[num]:
+        love += 1
+    if y - 1 >= 0 and seat[x][y - 1] in student[num]:
+        love += 1
+    if y + 1 < N and seat[x][y + 1] in student[num]:
+        love += 1
+    return love
+
+
+ans = 0
+
+for i in student:
+    temp = getLove(i)
+    seat[temp[0]][temp[1]] = i
+
+for i in range(N):
+    for j in range(N):
+        ans += (10 ** (calculateLove(i, j, seat[i][j])))//10
+
+print(ans)
