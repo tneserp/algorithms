@@ -1,3 +1,4 @@
+# BFS
 import sys
 from collections import deque
 
@@ -13,18 +14,23 @@ for _ in range(M):
     graph[u].append(v)
     graph[v].append(u)
 
-ans = 0
 
+def bfs(n):
+    q = deque()
+    q.append(n)
+    visited[n] = 1
+    while q:
+        j = q.popleft()
+        for k in graph[j]:
+            if not visited[k]:
+                visited[k] = 1
+                q.append(k)
+
+
+ans = 0
 for i in range(1, N + 1):
     if not visited[i]:
-        visited[i] = 1
-        q = deque([i])
+        bfs(i)
         ans += 1
-        while q:
-            k = q.popleft()
-            for j in graph[k]:
-                if not visited[j]:
-                    visited[j] = 1
-                    q.append(j)
 
 print(ans)
