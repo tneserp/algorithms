@@ -1,5 +1,4 @@
 import sys
-
 from collections import deque
 
 input = sys.stdin.readline
@@ -9,26 +8,18 @@ m = int(input().strip())
 
 graph = [[] for _ in range(n + 1)]
 dist = [0] * (n + 1)
-visited = [0] * (n + 1)
 
 
-def bfs():
-    q = deque([1])
-    visited[1] = 1
-    ans = 0
+def bfs(x):
+    q = deque()
+    q.append(x)
 
     while q:
         x = q.popleft()
         for nx in graph[x]:
-            if not visited[nx]:
+            if dist[nx] == 0:
                 dist[nx] = dist[x] + 1
-                if dist[nx] == 3:
-                    return ans
-                visited[nx] = 1
-                ans += 1
                 q.append(nx)
-
-    return ans
 
 
 for _ in range(m):
@@ -36,4 +27,9 @@ for _ in range(m):
     graph[a].append(b)
     graph[b].append(a)
 
-print(bfs())
+bfs(1)
+ans = 0
+for i in range(2, n + 1):
+    if 0 < dist[i] <= 2:
+        ans += 1
+print(ans)
