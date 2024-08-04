@@ -5,31 +5,32 @@ input = sys.stdin.readline
 
 N, M, V = map(int, input().split())
 
+graph = [[] for _ in range(N + 1)]
+
+
+def dfs(n):
+    print(n, end=' ')
+    visited[n] = 1
+    for nx in graph[n]:
+        if not visited[nx]:
+            visited[nx] = 1
+            dfs(nx)
+
 
 def bfs(n):
-    q = deque()
-    q.append(n)
     visited[n] = 1
-    while q:
-        temp = q.popleft()
-        print(temp, end=" ")
-        for k in graph[temp]:
-            if not visited[k]:
-                visited[k] = 1
-                q.append(k)
-    print()
 
-# 재귀 DFS
-def dfs(n):
-    print(n, end=" ")
-    visited[n] = 1
-    for k in graph[n]:
-        if not visited[k]:
-            dfs(k)
+    queue = deque()
+    queue.append(n)
 
+    while queue:
+        x = queue.popleft()
+        print(x, end=' ')
+        for nx in graph[x]:
+            if not visited[nx]:
+                visited[nx] = 1
+                queue.append(nx)
 
-graph = [[] for _ in range(N + 1)]
-visited = [0] * (N + 1)
 
 for _ in range(M):
     a, b = map(int, input().split())
@@ -38,8 +39,8 @@ for _ in range(M):
 
 for i in graph:
     i.sort()
-
-dfs(V)
 visited = [0] * (N + 1)
+dfs(V)
 print()
+visited = [0] * (N + 1)
 bfs(V)
